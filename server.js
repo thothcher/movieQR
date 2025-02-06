@@ -33,6 +33,22 @@ app.post("/vote", async (req, res) => {
   res.json({ success: true, message: `Vote recorded for ${movie}` });
 });
 
+app.get("/vote", async (req, res) => {
+  const movie = req.query.movie;
+  if (!movie) return res.status(400).send("Movie name is required!");
+
+  const docRef = db.collection("votes").doc(movie);
+  const doc = await docRef.get();
+
+  if (doc.exists) {
+      await docRef.update({ count: admin.firestore.FieldValue.increment(1) });
+  } else {
+      await docRef.set({ count: 1 });
+  }
+
+  res.send(`<h1>Vote Recorded for ${movie}!</h1><p>Thank you for voting.</p>`);
+});
+
 // Endpoint to Get Results
 app.get("/results", async (req, res) => {
   const snapshot = await db.collection("votes").get();
